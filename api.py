@@ -30,8 +30,9 @@ app = Flask(__name__)
 # Load our model into memory.
 # Please update this path to reflect your own trained model.
 static_model = load_model(
-    path_to_model='assets/trained-models/load_shortfall_simple_lm_regression.pkl')
-
+    path_to_model='assets/trained-models/short_fall_regression.pkl')
+if not static_model:
+    print("Model not loaded")
 print ('-'*40)
 print ('Model successfully loaded')
 print ('-'*40)
@@ -55,6 +56,17 @@ def model_prediction():
     # We finally package this prediction as a JSON object to deliver a valid
     # response with our API.
     return jsonify(output)
+
+#@app.route('/v')
+#def show_prediction():
+    #request_data = request.get_json()
+    #print(request_data)
+@app.route("/s")
+def display():
+    celsius = request.args.get()
+    return "Received POST response:"
+    
+
 
 # Configure Server Startup properties.
 # Note:

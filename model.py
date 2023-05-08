@@ -58,8 +58,96 @@ def _preprocess_data(data):
     # ---------------------------------------------------------------
 
     # ----------- Replace this code with your own preprocessing steps --------
-    predict_vector = feature_vector_df[['Madrid_wind_speed','Bilbao_rain_1h','Valencia_wind_speed']]
-    # ------------------------------------------------------------------------
+    train_df= feature_vector_df
+    if 'Unnamed: 0' in train_df.columns:
+        train_df = train_df.drop(['Unnamed: 0'], axis=1)
+    #create a copy
+    train_copy_df = train_df.copy(deep = True)
+    #Replace the null values in Valencia_pressure with Madrid_pressure values on the same row.
+    train_copy_df.loc[train_copy_df['Valencia_pressure'].isna(),'Valencia_pressure'] = \
+     train_copy_df.loc[train_copy_df['Valencia_pressure'].isna(), 'Madrid_pressure']
+    # Extracting year from time column
+    train_copy_df['time'] = pd.to_datetime(train_copy_df.time)
+    train_copy_df['Year'] = train_copy_df[['time']].applymap(lambda dt:dt.year
+        if not pd.isnull(dt.year) else 0)
+    train_copy_df['Month'] = train_copy_df[['time']].applymap(lambda dt:dt.month
+        if not pd.isnull(dt.day_name()) else 0)
+    train_copy_df['Hours'] = train_copy_df[['time']].applymap(lambda dt:dt.hour
+        if not pd.isnull(dt.day_name()) else 0)
+
+    #Let us Create new season features
+    train_copy_df.loc[train_copy_df['Month'].isin([1,2,3]),['winter','spring','summer','autumn']] = [1,0,0,0]
+    train_copy_df.loc[train_copy_df['Month'].isin([4,5,6]),['winter','spring','summer','autumn']] = [0,1,0,0]
+    train_copy_df.loc[train_copy_df['Month'].isin([7,8,9]),['winter','spring','summer','autumn']] = [0,0,1,0]
+    train_copy_df.loc[train_copy_df['Month'].isin([10,11,12]),['winter','spring','summer','autumn']] = [0,0,0,1]
+
+    train_copy_df = train_copy_df.astype(
+        {
+        'winter': int, 'summer': int, 'spring': int, 'autumn': int
+        }
+    )
+
+    def remover (df):
+        if "_" in df:
+            return float(df. split("_")[1].strip())
+        else:
+            return float(df. split("p")[1].strip());
+    train_copy_df["Valencia_wind_deg"]=train_copy_df["Valencia_wind_deg"].apply(remover)
+    train_copy_df["Seville_pressure"]= train_copy_df["Seville_pressure"].apply(remover)
+    train_copy_df = train_copy_df.drop(['time'], axis='columns')
+    train_copy_df = train_copy_df.fillna(0)
+
+    predict_vector = train_copy_df[['Madrid_wind_speed',
+    'Valencia_wind_deg',
+    'Bilbao_rain_1h',
+    'Valencia_wind_speed',
+    'Seville_humidity',
+    'Madrid_humidity',
+    'Bilbao_clouds_all',
+    'Bilbao_wind_speed',
+    'Seville_clouds_all',
+    'Bilbao_wind_deg',
+    'Barcelona_wind_speed',
+    'Barcelona_wind_deg',
+    'Madrid_clouds_all',
+    'Seville_wind_speed',
+    'Barcelona_rain_1h',
+    'Seville_pressure',
+    'Bilbao_snow_3h',
+    'Barcelona_pressure',
+    'Seville_rain_3h',
+    'Madrid_rain_1h',
+    'Madrid_weather_id',
+    'Barcelona_weather_id',
+    'Bilbao_pressure',
+    'Seville_weather_id',
+    'Valencia_pressure',
+    'Seville_temp_max',
+    'Madrid_pressure',
+    'Valencia_temp_max',
+    'Valencia_temp',
+    'Bilbao_weather_id',
+    'Seville_temp',
+    'Valencia_humidity',
+    'Valencia_temp_min',
+    'Barcelona_temp_max',
+    'Madrid_temp_max',
+    'Barcelona_temp',
+    'Bilbao_temp_min',
+    'Bilbao_temp',
+    'Barcelona_temp_min',
+    'Bilbao_temp_max',
+    'Seville_temp_min',
+    'Madrid_temp',
+    'Madrid_temp_min',
+    'Year',
+    'Month',
+    'Hours',
+    'winter',
+    'spring',
+    'summer',
+    'autumn']]
+# ------------------------------------------------------------------------
 
     return predict_vector
 
